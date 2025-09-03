@@ -1,0 +1,62 @@
+os: linux
+dist: bionic
+language: minimal
+sudo: required
+
+services:
+  - docker
+
+git:
+  depth: 1
+
+addons:
+  apt:
+    update: true
+
+before_install:
+  - sudo apt update
+  - sudo apt install -y git wget curl unzip
+
+before_script:
+  - cd $HOME && mkdir -p twrp
+  - TWRP_SOURCE="https://github.com/PhantomZone54/twrp_sources_norepo/releases/download/v3.3.1-20200222/MinimalOmniRecovery-twrp-6.0-norepo-20200222.tar.xz"
+  - wget -q ${TWRP_SOURCE} -O $HOME/twrp.tar.xz
+  - tar -xJf twrp.tar.xz --directory $HOME/twrp/ && rm twrp.tar.xz
+  - rm -rf bootable/recovery && git clone https://github.com/omnirom/android_bootable_recovery -b android-9.0 --depth 1 bootable/recovery
+
+script:
+  - cd $HOME/twrp/
+  - docker run --rm -i -e USER_ID=$(id -u) -e GROUP_ID=$(id -g) \
+      -v "$(pwd)":/home/builder/twrp:rw,z \
+      -v "${HOME}/.ccache:/srv/ccache:rw,z" \
+      fr3akyphantom/droid-builder bash << 'EOF'
+        cd /home/builder/twrp/
+        source build/envsetup.sh
+        BUILD_FLAVOR="eng"
+        lunch omni_malachite-${BUILD_FLAVOR}
+        make -j$(nproc --all) recoveryimage
+      EOF
+
+after_success:
+  - export version=$(grep 'define TW_MAIN_VERSION_STR' bootable/recovery/variables.h | cut -d '"' -f2)
+  - cp $HOME/twrp/out/target/product/malachite/recovery.img \
+       $HOME/twrp/TWRP-${version}-malachite-$(date +"%Y%m%d")-Unofficial.img
+  - cd $HOME/twrp/
+
+deploy:
+  provider: releases
+  api_key: $GitOAUTHToken
+  file_glob: true
+  file: $HOME/twrp/*.img
+  skip_cleanup: true
+  on:
+    tags: false
+    repo: FhrlRsknaa/android_device_xiaomi_malachite
+    branch: main
+
+branches:
+  only:
+    - main
+  except:
+    - /^(?i:untagged)-.*$/
+    - /^v\d+\.\d+(\.\d+)?(-\S*)?$/

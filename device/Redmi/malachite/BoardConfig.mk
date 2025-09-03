@@ -1,0 +1,63 @@
+LOCAL_PATH := device/Redmi/malachite
+
+# Platform/board
+TARGET_BOARD_PLATFORM := mt6878
+TARGET_NO_BOOTLOADER := true
+TARGET_BOOTLOADER_BOARD_NAME := malachite
+
+# MTK
+BOARD_USES_MTK_HARDWARE := true
+BOARD_HAS_MTK_HARDWARE := true
+
+# Partitions / sizes (from scatter)
+TARGET_USERIMAGES_USE_EXT4 := true
+TARGET_USERIMAGES_USE_F2FS := true
+BOARD_BOOTIMAGE_PARTITION_SIZE := 67108864
+BOARD_VENDOR_BOOTIMAGE_PARTITION_SIZE := 67108864
+BOARD_INIT_BOOT_IMAGE_PARTITION_SIZE := 8388608
+# No dedicated recovery partition on this device; recovery image size kept for builder compatibility
+BOARD_RECOVERYIMAGE_PARTITION_SIZE := 67108864
+BOARD_FLASH_BLOCK_SIZE := 131072
+
+# A/B OTA partitions
+AB_OTA_PARTITIONS += boot vendor_boot init_boot
+
+# Storage
+RECOVERY_SDCARD_ON_DATA := true
+
+# TWRP UI
+TW_INCLUDE_CRYPTO := true
+TW_THEME := portrait_hdpi
+DEVICE_RESOLUTION := 1220x2712
+TARGET_SCREEN_HEIGHT := 2712
+TARGET_SCREEN_WIDTH := 1220
+TARGET_RECOVERY_PIXEL_FORMAT := "RGBA_8888"
+TW_BRIGHTNESS_PATH := /sys/class/leds/lcd-backlight/brightness
+TW_MAX_BRIGHTNESS := 255
+TW_DEFAULT_BRIGHTNESS := 80
+TWRP_INCLUDE_LOGCAT := true
+TW_INCLUDE_FB2PNG := true
+TW_DEFAULT_LANGUAGE := en
+TW_EXTRA_LANGUAGES := false
+
+# Kernel (prebuilt from stock boot)
+TARGET_IS_64_BIT := true
+TARGET_PREBUILT_KERNEL := $(LOCAL_PATH)/prebuilt/zImage
+TARGET_PREBUILT_RECOVERY_KERNEL := $(LOCAL_PATH)/prebuilt/zImage
+
+# Kernel header/offsets
+BOARD_KERNEL_CMDLINE := bootopt=64S3,32N2,64N2
+BOARD_KERNEL_BASE := 0xffff8000
+BOARD_KERNEL_PAGESIZE := 4096  # split_img showed 0; typical is 4096
+BOARD_MKBOOTIMG_ARGS := --ramdisk_offset 0x00008630 --tags_offset 0x00008000
+BOARD_BOOTIMG_HEADER_VERSION := 4
+
+# FSTAB
+TARGET_RECOVERY_FSTAB := $(LOCAL_PATH)/recovery/root/etc/recovery.fstab
+
+# 64-bit
+TARGET_BOARD_SUFFIX := _64
+TARGET_USES_64_BIT_BINDER := true
+
+# Optional
+# BOARD_HAS_FLIPPED_SCREEN := true
